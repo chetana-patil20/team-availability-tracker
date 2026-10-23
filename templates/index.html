@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>Team Availability | Orbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Orbit home"><span class="brand-mark">o</span><span>orbit<span class="brand-dot">.</span></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <div class="workspace"><div class="workspace-icon">N</div><div><strong>Northstar Studio</strong><small>Free workspace</small></div><span class="chevron">⌄</span></div>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#overview" class="nav-item"><span class="nav-icon">▦</span> Overview</a>
+        <a href="#team" class="nav-item active"><span class="nav-icon">♧</span> Team availability <span class="nav-count">{{ total }}</span></a>
+        <a href="#activity" class="nav-item"><span class="nav-icon">◷</span> Activity</a>
+        <a href="#settings" class="nav-item"><span class="nav-icon">⚙</span> Settings</a>
+      </nav>
+      <div class="sidebar-bottom"><div class="help-card"><div class="help-icon">✦</div><strong>Need a hand?</strong><p>Find tips to keep your team in sync.</p><a href="#help">Visit help center <span>↗</span></a></div><div class="profile"><div class="profile-avatar">CP</div><div class="profile-copy"><strong>Chetana Patil</strong><small>Workspace admin</small></div><span class="more">•••</span></div></div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar"><div class="breadcrumbs">Workspace <span>/</span> <strong>Team availability</strong></div><div class="top-actions"><button class="icon-button" aria-label="Notifications">♧<i></i></button><div class="top-avatar">CP</div></div></header>
+      <section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> TEAM WORKSPACE</div><h1>Team availability</h1><p class="subtitle">See who's around and keep work moving together.</p></div><button class="date-button" type="button"><span>▦</span> Today <span class="date-chevron">⌄</span></button></section>
+
+      <section class="stats-grid" aria-label="Availability summary">
+        <article class="stat-card"><div class="stat-top"><span>Team members</span><span class="stat-icon purple">♧</span></div><div class="stat-number" id="total-count">{{ total }}</div><div class="stat-foot"><span class="mini-avatars"><i>AP</i><i>MC</i><i>NT</i><i>+</i></span><span>Across your workspace</span></div></article>
+        <article class="stat-card"><div class="stat-top"><span>Available now</span><span class="stat-icon green">✓</span></div><div class="stat-number" id="available-count">{{ available }}<span class="stat-out-of"> / {{ total }}</span></div><div class="stat-foot"><span class="status-dot green-dot"></span><span id="availability-caption">{{ ((available / total * 100)|round|int) if total else 0 }}% of your team is available</span></div></article>
+        <article class="stat-card"><div class="stat-top"><span>Busy right now</span><span class="stat-icon orange">◷</span></div><div class="stat-number" id="busy-count">{{ total - available }}</div><div class="stat-foot"><span class="status-dot orange-dot"></span><span>Focus time or away</span></div></article>
+      </section>
+
+      <section class="team-panel" id="team">
+        <div class="panel-header"><div><h2>Your team</h2><p>Manage your team's live availability status.</p></div><div class="panel-tools"><label class="search-box"><span>⌕</span><input id="search-input" type="search" placeholder="Search team..." aria-label="Search team members"><kbd>⌘ K</kbd></label><button class="filter-button" id="filter-button" type="button"><span>☷</span> Filter <span class="filter-chevron">⌄</span></button></div></div>
+        <div class="filter-row" id="filter-row" hidden><button class="filter-chip selected" data-filter="all">Everyone</button><button class="filter-chip" data-filter="available">Available</button><button class="filter-chip" data-filter="busy">Busy</button></div>
+        <div class="table-wrap"><table><thead><tr><th class="member-heading">TEAM MEMBER</th><th>ROLE</th><th>STATUS</th><th class="updated-heading">LAST UPDATED</th><th class="toggle-heading">AVAILABILITY</th></tr></thead><tbody id="members-body">
+          {% for member in members %}
+          <tr data-member-id="{{ member.id }}" data-name="{{ member.name|lower }}" data-status="{{ 'available' if member.is_available else 'busy' }}">
+            <td><div class="member-cell"><div class="member-avatar" style="--avatar-bg:{{ member.avatar_bg }};--avatar-color:{{ member.avatar_color }}">{{ member.initials }}</div><div class="member-name-wrap"><strong>{{ member.name }}</strong><small>{{ 'You' if member.name == 'Chetana Patil' else 'Team member' }}</small></div></div></td>
+            <td><span class="role-text">{{ member.role }}</span></td>
+            <td><span class="status-pill {{ 'available' if member.is_available else 'busy' }}" data-status-pill><i></i><span>{{ 'Available' if member.is_available else 'Busy' }}</span></span></td>
+            <td><span class="updated-time" data-updated>{{ 'Just now' if loop.first else 'A few minutes ago' }}</span></td>
+            <td><label class="switch-wrap" aria-label="Set {{ member.name }} availability"><input class="availability-toggle" type="checkbox" data-member-id="{{ member.id }}" {% if member.is_available %}checked{% endif %} aria-label="{{ member.name }} available"><span class="switch"></span></label></td>
+          </tr>
+          {% endfor %}
+        </tbody></table></div>
+        <div class="panel-footer"><span id="showing-count">Showing <strong>{{ total }}</strong> team members</span><span class="sync-status"><i></i><span id="sync-text">All changes synced</span></span></div>
+      </section>
+      <footer class="page-footer"><span>© 2026 Orbit Workspace</span><span><i class="footer-live"></i> Live status updates <span class="footer-separator">·</span> Powered by SQLite</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
